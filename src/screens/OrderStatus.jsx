@@ -37,8 +37,9 @@ export default function OrderStatus() {
   const totalOrders = orders.length;
 
   const pendingOrders = orders.filter(
-    order => order.status !== "completed"
+    order => order.status !== "completed" && order.status !== "declined"
   );
+
 
   const totalPendingAmount = pendingOrders.reduce(
     (sum, order) => sum + (order.totalAmount || 0),
@@ -69,8 +70,12 @@ export default function OrderStatus() {
         data.forEach(order => {
           const prevStatus = prevStatusesRef.current[order.id];
 
-          if (prevStatus && prevStatus !== order.status && !played) {
-            if (order.status === "ready") {
+          if (prevStatus &&
+              prevStatus !== order.status &&
+              !["declined", "paymentPending"].includes(order.status) &&
+              !played
+            ) {
+            if (order.status === "orderReady") {
               readyAudioRef.current?.play().catch(() => {});
               if (navigator.vibrate) {
                 navigator.vibrate([100, 50, 100]);

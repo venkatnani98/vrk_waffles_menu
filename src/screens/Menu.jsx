@@ -130,22 +130,25 @@ export default function Menu() {
         </div>
       </div>
 
-      {/* CATEGORY TABS WITH COUNT */}
-      <div className="flex gap-2 overflow-x-auto mb-4 no-scrollbar">
-        {categories.map(cat => (
-          <button
-            key={cat.name}
-            onClick={() => setActiveCategory(cat.name)}
-            className={`px-4 py-1 rounded-full text-sm whitespace-nowrap border transition-all ${
-              activeCategory === cat.name
-                ? "bg-[#8B4513] text-white border-[#8B4513] scale-105"
-                : "bg-white text-[#8B4513] border-[#8B4513]/20"
-            }`}
-          >
-            {cat.name} ({cat.count})
-          </button>
-        ))}
+      {/* CATEGORY TABS WITH FADE */}
+      <div className="relative mb-4">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar px-2 category-fade">
+          {categories.map(cat => (
+            <button
+              key={cat.name}
+              onClick={() => setActiveCategory(cat.name)}
+              className={`px-4 py-1 rounded-full text-sm whitespace-nowrap border transition-all ${
+                activeCategory === cat.name
+                  ? "bg-[#8B4513] text-white border-[#8B4513] scale-105"
+                  : "bg-white text-[#8B4513] border-[#8B4513]/20"
+              }`}
+            >
+              {cat.name} ({cat.count})
+            </button>
+          ))}
+        </div>
       </div>
+
 
       {/* ITEMS GRID WITH ANIMATION */}
       <div

@@ -1,22 +1,44 @@
 function getStatusStyle(status) {
-  const active = status !== "completed";
+  const isActive =
+    status !== "completed" && status !== "declined";
+
+  const isDeclined = status === "declined";
 
   return {
     label: status.replace(/([A-Z])/g, " $1").toUpperCase(),
-    text:
-      active ? "text-green-600" : "text-[#8B4513]",
-    dot:
-      active ? "bg-green-500 animate-pulseDot" : "bg-[#8B4513]",
-    glow:
-      active ? "shadow-[0_0_10px_rgba(34,197,94,0.6)]" : "",
+
+    text: isDeclined
+      ? "text-gray-500"
+      : isActive
+      ? "text-green-600"
+      : "text-[#8B4513]",
+
+    dot: isDeclined
+      ? "bg-gray-400"
+      : isActive
+      ? "bg-green-500 animate-pulseDot"
+      : "bg-[#8B4513]",
+
+    glow: isActive
+      ? "shadow-[0_0_10px_rgba(34,197,94,0.6)]"
+      : "",
   };
 }
 
 function OrderBatch({ order }) {
   const status = getStatusStyle(order.status);
+  const isDeclined = order.status === "declined";
 
   return (
-    <div className="bg-white rounded-lg p-4 shadow-md w-full">
+    <div
+      className={`rounded-lg p-4 shadow-md w-full transition-all
+        ${
+          isDeclined
+            ? "bg-gray-200 opacity-60 grayscale pointer-events-none"
+            : "bg-white"
+        }
+      `}
+    >
       {/* HEADER */}
       <div className="flex justify-between items-center mb-3">
         <div>

@@ -38,12 +38,27 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen flex flex-col px-4 py-6">
       <div className="flex-1 flex flex-col justify-center">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold">Waffle House</h1>
-          <p className="text-sm text-slate-500 mt-1">
+       <div className="mb-8 text-center flex flex-col items-center">
+          <img
+            src="/vrk-logo.svg"
+            alt="VRK Waffles"
+            className="w-48 h-48 mb-3"
+          />
+
+          <p className="text-sm font-semibold text-[#8B4513]">
+            VRK Waffles & More
+          </p>
+
+          <p className="text-xs text-slate-500 mt-1 text-center leading-snug">
+            Siddartha Nagar, Dammiguda<br />
+            Hyderabad
+          </p>
+
+          <p className="text-sm text-slate-500 mt-3">
             Please tell us who&apos;s ordering
           </p>
         </div>
+
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -86,7 +101,7 @@ export default function Onboarding() {
         </form>
       </div>
 
-      <p className="text-[11px] text-center text-slate-400 mt-4">
+      <p className="text-[14px] text-center text-slate-400 mt-4">
         Your name & mobile are only used for your order.
       </p>
     </div>
