@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { getCatalogueItems } from "../services/items";
 import { useCartStore } from "../store/cartStore";
 import { useNavigate } from "react-router-dom";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc } from "firebase/firestore";
 import { db } from "../services/firebase";
 import { useUserStore } from "../store/userStore";
 import AppHeader from "../components/AppHeader";
@@ -12,6 +12,7 @@ export default function Menu() {
   const [activeCategory, setActiveCategory] = useState(null);
   const [foodFilter, setFoodFilter] = useState("all");
   const [hasOrdersToday, setHasOrdersToday] = useState(false);
+  const [storeOpen, setStoreOpen] = useState(false);
 
   const cartItems = useCartStore(s => s.items);
   const addItem = useCartStore(s => s.addItem);
@@ -20,6 +21,23 @@ export default function Menu() {
 
   const navigate = useNavigate();
   const { phone } = useUserStore();
+
+/* ---------------- Store open/close listener ---------------- */
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    const docRef = doc(db, "orders", today);
+
+    const unsub = onSnapshot(docRef, snap => {
+      if (snap.exists()) {
+        setStoreOpen(snap.data().storeOpen === true);
+      } else {
+        setStoreOpen(false);
+      }
+    });
+
+    return () => unsub();
+  }, []);
+
 
   /* ---------------- Orders today listener ---------------- */
   useEffect(() => {
@@ -102,7 +120,7 @@ export default function Menu() {
 
   return (
     <div className="min-h-screen p-4 pb-28 bg-[#F3E4C4]">
-      <AppHeader />
+      <AppHeader storeOpen={storeOpen} />
 
       {/* HEADER ROW */}
       <div className="flex items-center justify-between mb-4">
