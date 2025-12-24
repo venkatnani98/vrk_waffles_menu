@@ -195,7 +195,7 @@ export default function Menu() {
               </div>
 
               <p className="mt-2 text-sm text-center font-semibold text-[#8B4513]">
-                {item.name}
+                {item.name} (₹{item.price})
               </p>
 
               {qty === 0 ? (
