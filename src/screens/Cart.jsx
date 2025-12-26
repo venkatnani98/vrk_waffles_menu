@@ -14,6 +14,8 @@ import AppHeader from "../components/AppHeader";
 
 export default function Cart() {
   const navigate = useNavigate();
+  const [showConfirm, setShowConfirm] = useState(false);
+
 
   const items = useCartStore(s => s.items);
   const increment = useCartStore(s => s.increment);
@@ -223,13 +225,55 @@ const placeOrder = async () => {
         </p>
 
         <button
-          onClick={placeOrder}
+          onClick={() => setShowConfirm(true)}
           disabled={loading}
           className="w-full bg-[#8B4513] text-white font-semibold py-2 rounded-lg text-sm disabled:opacity-60"
         >
           {loading ? "Placing Order..." : "Finalize Order"}
         </button>
+
       </footer>
+
+      {showConfirm && (
+          <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+            <div className="bg-white w-[85%] max-w-sm rounded-xl p-5 shadow-lg">
+              <h2 className="text-base font-semibold text-[#8B4513] mb-2">
+                Confirm Order
+              </h2>
+
+              <p className="text-sm text-slate-600 leading-relaxed mb-4">
+                Once you click <b>Okay</b>, your order will start preparing and cannot be modified.
+                <br /><br />
+                To modify or cancel the order, please reach the counter within <b>3 minutes</b> of placing it.
+                <br />
+                To add more items, place a <b>new order</b>.
+                <br /><br />
+                Once prepared, food cannot be cancelled or discarded.
+              </p>
+
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowConfirm(false)}
+                  className="flex-1 border border-slate-300 rounded-lg py-2 text-sm"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowConfirm(false);
+                    placeOrder();
+                  }}
+                  className="flex-1 bg-[#8B4513] text-white rounded-lg py-2 text-sm font-semibold"
+                >
+                  Okay
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
     </div>
   );
 }
