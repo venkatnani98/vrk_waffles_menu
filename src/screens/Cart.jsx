@@ -56,69 +56,76 @@ const placeOrder = async () => {
   setLoading(true);
 
   try {
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const today = new Date().toISOString().slice(0, 10);
 
     const dayRef = doc(db, "orders", today);
+    const orderInfoRef = doc(db, "orders", "ordersInfo");
     const orderRef = doc(collection(db, "orders", today, "online"));
 
-    const result = await runTransaction(db, async (transaction) => {
-      // 1️⃣ Read day document
-      const daySnap = await transaction.get(dayRef);
+   const result = await runTransaction(db, async (transaction) => {
+    // 1️⃣ READ ALL DOCS FIRST
+    const daySnap = await transaction.get(dayRef);
+    const infoSnap = await transaction.get(orderInfoRef);
 
-      let nextCount = 1;
+    // 2️⃣ COMPUTE VALUES
+    const nextCount = daySnap.exists()
+      ? (daySnap.data().totalCount || 0) + 1
+      : 1;
 
-      if (daySnap.exists()) {
-        nextCount = (daySnap.data().totalCount || 0) + 1;
-      }
+    const lastGlobal = infoSnap.exists()
+      ? infoSnap.data().lastOrderId || 0
+      : 0;
 
-      // 2️⃣ Update totalCount on day doc
-      transaction.set(
-        dayRef,
-        { totalCount: nextCount },
-        { merge: true }
-      );
+    const nextGlobalId = lastGlobal + 1;
 
-      // 3️⃣ Generate order number YYMMDD###
-      const yy = today.slice(2, 4);
-      const mm = today.slice(5, 7);
-      const dd = today.slice(8, 10);
+    // 3️⃣ GENERATE ORDER NUMBER
+    const yy = today.slice(2, 4);
+    const mm = today.slice(5, 7);
+    const dd = today.slice(8, 10);
+    const orderNumber = `${yy}${mm}${dd}${String(nextCount).padStart(3, "0")}`;
 
-      const orderNumber = `${yy}${mm}${dd}${String(nextCount).padStart(3, "0")}`;
-
-      // 4️⃣ Build items map
-      const orderItems = {};
-      itemList.forEach(item => {
-        orderItems[item.id] = {
-          name: item.name,
-          qty: item.qty,
-          price: item.price,
-          amount: item.qty * item.price,
-        };
-      });
-
-      // 5️⃣ Create order document
-      transaction.set(orderRef, {
-        orderNumber,
-        name,
-        phone,
-        items: orderItems,
-        totalAmount,
-        status: "orderPlaced",
-        createdAt: serverTimestamp(),
-        source: "online",
-      });
-
-      return {
-        orderId: orderRef.id,
-        orderNumber,
+    // 4️⃣ BUILD ITEMS
+    const orderItems = {};
+    itemList.forEach(item => {
+      orderItems[item.id] = {
+        name: item.name,
+        qty: item.qty,
+        price: item.price,
+        amount: item.qty * item.price,
       };
     });
 
-    // 6️⃣ Clear cart AFTER transaction success
-    clearCart();
+    // 5️⃣ NOW DO ALL WRITES
+    transaction.set(dayRef, { totalCount: nextCount }, { merge: true });
 
-    // 7️⃣ Navigate to order status
+    transaction.set(
+      orderInfoRef,
+      { lastOrderId: nextGlobalId },
+      { merge: true }
+    );
+
+    transaction.set(orderRef, {
+      orderId: nextGlobalId,
+      orderNumber,
+      name,
+      phone,
+      items: orderItems,
+      totalAmount,
+      status: "orderPlaced",
+      createdAt: serverTimestamp(),
+      source: "online",
+    });
+
+    return {
+      orderId: nextGlobalId,
+      orderNumber,
+    };
+  });
+
+
+    clearCart();
     navigate(`/orders`);
+
   } catch (err) {
     console.error("Order failed:", err);
     alert("Failed to place order. Please try again.");

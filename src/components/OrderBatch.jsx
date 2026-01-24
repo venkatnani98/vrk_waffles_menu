@@ -43,7 +43,7 @@ function OrderBatch({ order }) {
       <div className="flex justify-between items-center mb-3">
         <div>
           <p className="text-sm font-semibold">
-            Order #{order.orderNumber}
+            Order #{order.orderId}
           </p>
         </div>
 
