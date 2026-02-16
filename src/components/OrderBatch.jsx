@@ -7,11 +7,8 @@ function getStatusStyle(status) {
   return {
     label: status.replace(/([A-Z])/g, " $1").toUpperCase(),
 
-    text: isDeclined
-      ? "text-gray-500"
-      : isActive
-      ? "text-green-600"
-      : "text-[#8B4513]",
+    // force label text to chocolate for readability across themes
+    text: "chocolate-text",
 
     dot: isDeclined
       ? "bg-gray-400"
@@ -42,7 +39,7 @@ function OrderBatch({ order }) {
       {/* HEADER */}
       <div className="flex justify-between items-center mb-3">
         <div>
-          <p className="text-sm font-semibold">
+          <p className="text-sm font-semibold" style={{color:"#8B4513"}}>
             Order #{order.orderId}
           </p>
         </div>
@@ -52,7 +49,7 @@ function OrderBatch({ order }) {
         >
           <span
             className={`w-3 h-3 rounded-full ${status.dot}`}
-          />
+           style={{color:"#8B4513"}} />
           {status.label}
         </div>
       </div>
@@ -64,16 +61,16 @@ function OrderBatch({ order }) {
             key={idx}
             className="flex justify-between text-sm"
           >
-            <span>
+            <span style={{color:"#8B4513"}}>
               {item.name} × {item.qty}
             </span>
-            <span>₹{item.amount}</span>
+            <span style={{color:"#8B4513"}}>₹{item.amount}</span>
           </div>
         ))}
       </div>
 
       {/* TOTAL */}
-      <div className="border-t mt-3 pt-2 flex justify-between font-semibold">
+      <div className="border-t mt-3 pt-2 flex justify-between font-semibold" style={{color:"#8B4513"}}>
         <span>Total</span>
         <span>₹{order.totalAmount}</span>
       </div>

@@ -208,7 +208,7 @@ const placeOrder = async () => {
                 +
               </button>
             
-              <p className="text-sm font-semibold w-16 text-right">
+              <p className="text-sm font-semibold w-16 text-right" style={{color:"#8B4513"}}>
                 ₹{item.price * item.qty}
               </p>
             </div>
@@ -219,8 +219,8 @@ const placeOrder = async () => {
       {/* FOOTER */}
       <footer className="border-t px-4 py-4">
         <div className="flex justify-between mb-2">
-          <span className="text-sm font-medium">Total</span>
-          <span className="text-lg font-bold">
+          <span className="text-sm font-medium" style={{color:"#8B4513"}}>Total</span>
+          <span className="text-lg font-bold" style={{color:"#8B4513"}}>
             ₹{totalAmount}
           </span>
         </div>

@@ -135,10 +135,10 @@ export default function Menu() {
               className={`px-3 py-1 transition ${
                 foodFilter === type
                   ? type === "veg"
-                    ? "bg-green-600 text-white"
+                    ? "bg-green-600 text-white ring-2 ring-green-400"
                     : type === "nonveg"
-                    ? "bg-[#7a1f1f] text-white"
-                    : "bg-[#8B4513] text-white"
+                    ? "bg-[#7a1f1f] text-white ring-2 ring-[#7a1f1f]"
+                    : "bg-[#8B4513] text-white ring-2 ring-[#8B4513]"
                   : "bg-white text-[#8B4513]"
               }`}
             >
@@ -157,8 +157,8 @@ export default function Menu() {
               onClick={() => setActiveCategory(cat.name)}
               className={`px-4 py-1 rounded-full text-sm whitespace-nowrap border transition-all ${
                 activeCategory === cat.name
-                  ? "bg-[#8B4513] text-white border-[#8B4513] scale-105"
-                  : "bg-white text-[#8B4513] border-[#8B4513]/20"
+                  ? "bg-[#8B4513] text-white border-2 border-[#8B4513] scale-105 shadow-[0_4px_10px_rgba(139,69,19,0.12)]"
+                  : "bg-white text-[#8B4513] border border-[#8B4513]/20"
               }`}
             >
               {cat.name} ({cat.count})
@@ -208,7 +208,7 @@ export default function Menu() {
               ) : (
                 <div className="mt-2 flex items-center gap-2 bg-[#F3E4C4] rounded px-2 py-1">
                   <button onClick={() => decrement(item.id)}>-</button>
-                  <span className="text-xs font-bold">{qty}</span>
+                  <span className="text-xs font-bold" style={{color:"#8B4513"}}>{qty}</span>
                   <button onClick={() => increment(item.id)}>+</button>
                 </div>
               )}

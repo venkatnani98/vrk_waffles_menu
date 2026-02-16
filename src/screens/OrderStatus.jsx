@@ -107,7 +107,7 @@ export default function OrderStatus() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-sm text-slate-500">Loading orders...</p>
+        <p className="text-sm text-slate-500" style={{color:"#8B4513"}}>Loading orders...</p>
       </div>
     );
   }
@@ -115,7 +115,7 @@ export default function OrderStatus() {
   if (orders.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500" style={{color:"#8B4513"}}>
           No orders found for today.
         </p>
       </div>
@@ -130,17 +130,17 @@ export default function OrderStatus() {
     {/* HEADER SUMMARY */}
     <div className="bg-white rounded-lg shadow-sm px-4 py-3 flex justify-between items-center">
       <div>
-        <p className="text-xs text-slate-500">Total Orders</p>
+        <p className="text-xs text-slate-500" style={{color:"#8B4513"}}>Total Orders</p>
         <p className="text-lg font-bold text-[#8B4513]">
           {totalOrders}
         </p>
       </div>
 
-      <div className="text-right">
-        <p className="text-xs text-slate-500">
+      <div className="text-right" style={{color:"#8B4513"}}>
+        <p className="text-xs text-slate-500" style={{color:"#8B4513"}}>
           Pending To Be Paid
         </p>
-        <p className="text-lg font-bold text-green-600">
+        <p className="text-lg font-bold text-green-600" style={{color:"#8B4513"}}>
           ₹{totalPendingAmount}
         </p>
       </div>

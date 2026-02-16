@@ -62,12 +62,12 @@ export default function Onboarding() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium mb-1 onboarding-label">
               Name
             </label>
             <input
               type="text"
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 onboarding-input"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
@@ -75,12 +75,12 @@ export default function Onboarding() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium mb-1 onboarding-label">
               Mobile Number
             </label>
             <input
               type="tel"
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 onboarding-input"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="10-digit number"

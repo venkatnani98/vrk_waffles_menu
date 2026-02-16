@@ -11,24 +11,18 @@ export default function AppHeader({
       />
 
       <div className="flex-1 leading-tight">
-        <h2 className="text-sm font-semibold">
+        <h2 className="text-sm font-semibold chocolate-text">
           Siddartha Nagar, Dammiguda
         </h2>
 
-        <h3 className="text-xs">
-          Ph. <span className="font-bold">7901333390</span>
+        <h3 className="text-xs chocolate-text">
+          Ph. <span className="font-bold chocolate-text">7901333390</span>
         </h3>
 
         {showStatus && (
-          <h3 className="text-xs mt-1">
+          <h3 className="text-xs mt-1 chocolate-text">
             Waffle Store Status :
-            <span
-              className={`ml-1 font-bold ${
-                storeOpen
-                  ? "text-green-600"
-                  : "text-gray-500"
-              }`}
-            >
+            <span className={`ml-1 font-bold chocolate-text`}>
               {storeOpen ? "Online" : "Offline"}
             </span>
           </h3>

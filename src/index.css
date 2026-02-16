@@ -58,18 +58,7 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
+/* Removed automatic light theme: app enforces its own theme */
 
 @keyframes pulseDot {
   0% {
@@ -107,4 +96,47 @@ button:focus-visible {
 
 
 
+
 @import "tailwindcss";
+
+/* Force app theme: keep consistent dark theme regardless of device preference */
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #242424 !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+/* Make buttons clearly visible on dark background */
+button {
+  background-color: #8B4513 !important;
+  color: inherit !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+/* Text class for fixed chocolate color regardless of theme */
+.chocolate-text {
+  color: #8B4513 !important;
+}
+
+/* Onboarding input styles: fixed dark-friendly input so visibility doesn't depend on OS theme */
+.onboarding-input {
+  background-color: #8B4513 !important;
+  color: rgba(255,255,255,0.92) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+}
+.onboarding-input::placeholder {
+  color: rgba(255,255,255,0.6) !important;
+}
+.onboarding-label {
+  color: #8B4513 !important;
+}
+
+/* Override media-based light theme to prevent system from forcing light styles */
+@media (prefers-color-scheme: light) {
+  :root, body, button {
+    color-scheme: dark !important;
+  }
+}
