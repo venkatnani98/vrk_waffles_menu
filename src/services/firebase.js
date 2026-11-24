@@ -29,7 +29,7 @@ const db = getFirestore(app);
 ═══════════════════════════════════════════════════════════════ */
 
 // Firebase console -> Project settings -> Cloud Messaging -> Web Push certificates
-const VAPID_KEY = import.meta.env.VAPID_KEY;
+const VITE_FIREBASE_VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
 
 // The service worker lives in /public. We hand it the config through the URL
 // so the config only has to exist in this file.
@@ -95,15 +95,15 @@ function listenForeground() {
 }
 
 async function saveToken(phone) {
-  if (!VAPID_KEY) {
-    throw new Error("VAPID_KEY is missing in your .env file");
+  if (!VITE_FIREBASE_VAPID_KEY) {
+    throw new Error("VITE_FIREBASE_VAPID_KEY is missing in your .env file");
   }
 
   const registration = await navigator.serviceWorker.register(SW_URL);
   await navigator.serviceWorker.ready;
 
   const token = await getToken(getMessaging(app), {
-    vapidKey: VAPID_KEY,
+    vapidKey: VITE_FIREBASE_VAPID_KEY,
     serviceWorkerRegistration: registration,
   });
   if (!token) throw new Error("No notification token received");

@@ -4,7 +4,7 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase";
 
 // Firebase console -> Project settings -> Cloud Messaging -> Web Push certificates
-const VAPID_KEY = import.meta.env.VAPID_KEY;
+const VITE_FIREBASE_VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
 
 const isIOS = () =>
   /iphone|ipad|ipod/i.test(navigator.userAgent) ||
@@ -40,7 +40,7 @@ async function saveToken(phone) {
   await navigator.serviceWorker.ready;
 
   const token = await getToken(getMessaging(getApp()), {
-    vapidKey: VAPID_KEY,
+    vapidKey: VITE_FIREBASE_VAPID_KEY,
     serviceWorkerRegistration: registration,
   });
   if (!token) throw new Error("No notification token received");
