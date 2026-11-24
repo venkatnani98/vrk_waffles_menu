@@ -391,12 +391,32 @@ a:focus-visible {
   color: #fff;
   font-weight: 700;
 }
-.stepper button { width: 36px; height: 36px; font-size: 20px; line-height: 1; color: inherit; background: none; }
+.stepper button { width: 36px; height: 36px; font-size: 20px; line-height: 20px; color: inherit; background: none; }
 .stepper button:active { opacity: 0.6; }
 .stepper span { min-width: 22px; text-align: center; font-size: 14px; font-variant-numeric: tabular-nums; }
 .stepper.is-block { display: flex; justify-content: space-between; width: 100%; }
 .stepper.is-light { background: var(--sand); color: var(--crust); }
+.stepper.is-light button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  color: var(--crust);
+}
 
+.qty-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: #8b4513;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
 /* ==========================================================
    Images: placeholder, shimmer, fade-in
    ========================================================== */

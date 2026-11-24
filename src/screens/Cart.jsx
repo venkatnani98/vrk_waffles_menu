@@ -185,8 +185,9 @@ export default function Cart() {
                   ₹{item.price} each
                 </p>
 
-                <div className="stepper is-light">
+                <div className="stepper">
                   <button
+                    className="qty-btn" 
                     onClick={() => decrement(item.id)}
                     aria-label={`Remove one ${item.name}`}
                   >
@@ -194,6 +195,7 @@ export default function Cart() {
                   </button>
                   <span>{item.qty}</span>
                   <button
+                    className="qty-btn" 
                     onClick={() => increment(item.id)}
                     aria-label={`Add one ${item.name}`}
                   >
