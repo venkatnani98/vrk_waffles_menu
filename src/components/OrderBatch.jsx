@@ -1,80 +1,64 @@
-function getStatusStyle(status) {
-  const isActive =
-    status !== "completed" && status !== "declined";
+function getStatusStyle(status = "") {
+  // "orderPlaced" -> "Order placed"
+  const spaced = status.replace(/([A-Z])/g, " $1").trim().toLowerCase();
+  const label = spaced.charAt(0).toUpperCase() + spaced.slice(1);
 
-  const isDeclined = status === "declined";
+  let tone = "active";
+  if (status === "declined") tone = "declined";
+  else if (status === "completed") tone = "done";
+  else if (status === "orderReady") tone = "ready";
 
-  return {
-    label: status.replace(/([A-Z])/g, " $1").toUpperCase(),
-
-    // force label text to chocolate for readability across themes
-    text: "chocolate-text",
-
-    dot: isDeclined
-      ? "bg-gray-400"
-      : isActive
-      ? "bg-green-500 animate-pulseDot"
-      : "bg-[#8B4513]",
-
-    glow: isActive
-      ? "shadow-[0_0_10px_rgba(34,197,94,0.6)]"
-      : "",
-  };
+  return { label, tone };
 }
 
-function OrderBatch({ order }) {
+function OrderBatch({ order, onPay }) {
   const status = getStatusStyle(order.status);
   const isDeclined = order.status === "declined";
+  const isCompleted = order.status === "completed";
+
+  const paid = order.paymentStatus === "paid";
+  const chosenCounter = order.paymentMethod === "counter";
+  const showPayment = !isDeclined && (paid || !isCompleted);
+  const canPayOnline = !paid && !isDeclined && !isCompleted && Boolean(onPay);
+
+  let payLabel = "Payment pending";
+  if (paid) payLabel = "Paid online";
+  else if (chosenCounter) payLabel = "Pay at counter";
 
   return (
-    <div
-      className={`rounded-lg p-4 shadow-md w-full transition-all
-        ${
-          isDeclined
-            ? "bg-gray-200 opacity-60 grayscale pointer-events-none"
-            : "bg-white"
-        }
-      `}
-    >
-      {/* HEADER */}
-      <div className="flex justify-between items-center mb-3">
-        <div>
-          <p className="text-sm font-semibold" style={{color:"#8B4513"}}>
-            Order #{order.orderId}
-          </p>
-        </div>
-
-        <div
-          className={`flex items-center gap-2 font-bold text-sm ${status.text} ${status.glow}`}
-        >
-          <span
-            className={`w-3 h-3 rounded-full ${status.dot}`}
-           style={{color:"#8B4513"}} />
-          {status.label}
-        </div>
+    <article className={`order ${isDeclined ? "is-declined" : ""}`}>
+      <div className="row between" style={{ marginBottom: 12 }}>
+        <p className="order-id">Order #{order.orderId}</p>
+        <span className={`badge ${status.tone}`}>{status.label}</span>
       </div>
 
-      {/* ITEMS */}
-      <div className="space-y-2">
-        {Object.values(order.items).map((item, idx) => (
-          <div
-            key={idx}
-            className="flex justify-between text-sm"
-          >
-            <span style={{color:"#8B4513"}}>
+      <div style={{ display: "grid", gap: 8 }}>
+        {Object.values(order.items || {}).map((item, idx) => (
+          <div key={idx} className="line-item">
+            <span>
               {item.name} × {item.qty}
             </span>
-            <span style={{color:"#8B4513"}}>₹{item.amount}</span>
+            <span>₹{item.amount}</span>
           </div>
         ))}
       </div>
 
-      {/* TOTAL */}
-      <div className="border-t mt-3 pt-2 flex justify-between font-semibold" style={{color:"#8B4513"}}>
+      <div className="total-row">
         <span>Total</span>
         <span>₹{order.totalAmount}</span>
       </div>
-    </div>
+
+      {showPayment && (
+        <div className="pay-row">
+          <span className={`pay-state ${paid ? "is-paid" : ""}`}>{payLabel}</span>
+          {canPayOnline && (
+            <button className="btn-mini" onClick={onPay}>
+              {chosenCounter ? "Pay online instead" : "Pay online"}
+            </button>
+          )}
+        </div>
+      )}
+    </article>
   );
 }
 

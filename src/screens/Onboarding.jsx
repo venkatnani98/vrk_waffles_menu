@@ -10,19 +10,19 @@ export default function Onboarding() {
   const [phone, setPhone] = useState(savedPhone || "");
   const [error, setError] = useState("");
 
+  const alreadyKnown = Boolean(savedName && savedPhone);
+
   // If user already exists, skip this screen
   useEffect(() => {
-    if (savedName && savedPhone) {
-      navigate("/menu");
-    }
-  }, [savedName, savedPhone, navigate]);
+    if (alreadyKnown) navigate("/menu", { replace: true });
+  }, [alreadyKnown, navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setError("");
 
     if (!name.trim()) {
-      setError("Please enter your name.");
+      setError("Enter your name.");
       return;
     }
 
@@ -35,75 +35,77 @@ export default function Onboarding() {
     navigate("/menu");
   };
 
+  if (alreadyKnown) return null;
+
   return (
-    <div className="min-h-screen flex flex-col px-4 py-6">
-      <div className="flex-1 flex flex-col justify-center">
-       <div className="mb-8 text-center flex flex-col items-center">
-          <img
-            src="/vrk-logo.svg"
-            alt="VRK Waffles"
-            className="w-48 h-48 mb-3"
-          />
+    <div className="screen">
+      <section className="waffle intro">
+        <img
+          src="/waffle_dimension_logo.jpg"
+          alt="Waffle Dimension Logo"
+          width="112"
+          height="112"
+          loading="eager"
+          decoding="async"
+          className="intro-logo"
+        />
+        <h1 className="intro-name">Waffle Dimension</h1>
+        <p className="intro-addr">Creative Nagar, A S Rao Nagar, Hyderabad</p>
+      </section>
 
-          <p className="text-sm font-semibold text-[#8B4513]">
-            VRK Waffles & More
-          </p>
+      <section className="sheet-panel">
+        <h2 className="title">Who’s ordering?</h2>
+        <p className="small muted" style={{ marginTop: 4, marginBottom: 20 }}>
+          We use this only to match you with your orders.
+        </p>
 
-          <p className="text-xs text-slate-500 mt-1 text-center leading-snug">
-            Siddartha Nagar, Dammiguda<br />
-            Hyderabad
-          </p>
-
-          <p className="text-sm text-slate-500 mt-3">
-            Please tell us who&apos;s ordering
-          </p>
-        </div>
-
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate style={{ display: "grid", gap: 16 }}>
           <div>
-            <label className="block text-sm font-medium mb-1 onboarding-label">
+            <label className="label" htmlFor="name">
               Name
             </label>
             <input
+              id="name"
+              name="name"
               type="text"
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 onboarding-input"
+              autoComplete="name"
+              className="input"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
+              aria-invalid={error.toLowerCase().includes("name")}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1 onboarding-label">
-              Mobile Number
+            <label className="label" htmlFor="phone">
+              Mobile number
             </label>
             <input
+              id="phone"
+              name="phone"
               type="tel"
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 onboarding-input"
+              inputMode="numeric"
+              autoComplete="tel-national"
+              className="input"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="10-digit number"
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+              placeholder="10-digit mobile number"
               maxLength={10}
+              aria-invalid={error.toLowerCase().includes("mobile")}
             />
+            {error && (
+              <p className="error-text" role="alert">
+                {error}
+              </p>
+            )}
           </div>
 
-          {error && (
-            <p className="text-xs text-red-500 mt-1">{error}</p>
-          )}
-
-          <button
-            type="submit"
-            className="w-full bg-amber-500 text-white font-semibold py-2 rounded-lg mt-2 text-sm active:scale-[0.98] transition"
-          >
-            Continue to Menu
+          <button type="submit" className="btn btn-primary" style={{ marginTop: 4 }}>
+            Continue to menu
           </button>
         </form>
-      </div>
-
-      <p className="text-[14px] text-center text-slate-400 mt-4">
-        Your name & mobile are only used for your order.
-      </p>
+      </section>
     </div>
   );
 }

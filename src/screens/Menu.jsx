@@ -1,245 +1,359 @@
 import { useEffect, useState, useMemo } from "react";
-import { getCatalogueItems } from "../services/items";
-import { useCartStore } from "../store/cartStore";
 import { useNavigate } from "react-router-dom";
 import { collection, query, where, onSnapshot, doc } from "firebase/firestore";
+import { getCatalogueItems } from "../services/items";
 import { db } from "../services/firebase";
+import { useCartStore } from "../store/cartStore";
 import { useUserStore } from "../store/userStore";
 import AppHeader from "../components/AppHeader";
+import CartBubble from "../components/CartBubble";
+import SmartImage, { prefetchImages } from "../components/SmartImage";
+
+/* "ice cream & shakes" -> "Ice Cream & Shakes" (display only, data is untouched) */
+const titleCase = (s) =>
+  String(s || "").replace(/(^|\s)(\p{L})/gu, (_, space, ch) => space + ch.toUpperCase());
+
+/* ---------------- Catalogue cache (stale-while-revalidate) ---------------- */
+const CACHE_KEY = "vrk_catalogue_v1";
+const CACHE_MAX_AGE = 24 * 60 * 60 * 1000;
+let memoryCache = null;
+
+function readCache() {
+  if (memoryCache) return memoryCache;
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed.items) || Date.now() - parsed.at > CACHE_MAX_AGE) {
+      return null;
+    }
+    memoryCache = parsed.items;
+    return memoryCache;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(items) {
+  memoryCache = items;
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ items, at: Date.now() }));
+  } catch {
+    /* storage full or blocked: ignore */
+  }
+}
+
+const FILTERS = [
+  { id: "all", label: "All" },
+  { id: "veg", label: "Veg" },
+  { id: "nonveg", label: "Non-veg" },
+];
+
+const todayKey = () => new Date().toISOString().slice(0, 10);
 
 export default function Menu() {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(() => readCache() || []);
+  const [status, setStatus] = useState(() => (readCache() ? "ready" : "loading"));
+  const [reloadKey, setReloadKey] = useState(0);
   const [activeCategory, setActiveCategory] = useState(null);
   const [foodFilter, setFoodFilter] = useState("all");
   const [hasOrdersToday, setHasOrdersToday] = useState(false);
   const [storeOpen, setStoreOpen] = useState(false);
+  const [catSheet, setCatSheet] = useState(false);
 
-  const cartItems = useCartStore(s => s.items);
-  const addItem = useCartStore(s => s.addItem);
-  const increment = useCartStore(s => s.increment);
-  const decrement = useCartStore(s => s.decrement);
+  const cartItems = useCartStore((s) => s.items);
+  const addItem = useCartStore((s) => s.addItem);
+  const increment = useCartStore((s) => s.increment);
+  const decrement = useCartStore((s) => s.decrement);
 
   const navigate = useNavigate();
   const { phone } = useUserStore();
 
-/* ---------------- Store open/close listener ---------------- */
+  /* ---------------- Store open/close listener ---------------- */
   useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    const docRef = doc(db, "orders", today);
-
-    const unsub = onSnapshot(docRef, snap => {
-      if (snap.exists()) {
-        setStoreOpen(snap.data().storeOpen === true);
-      } else {
-        setStoreOpen(false);
-      }
+    const docRef = doc(db, "orders", todayKey());
+    const unsub = onSnapshot(docRef, (snap) => {
+      setStoreOpen(snap.exists() ? snap.data().storeOpen === true : false);
     });
-
     return () => unsub();
   }, []);
-
 
   /* ---------------- Orders today listener ---------------- */
   useEffect(() => {
     if (!phone) return;
-
-    const today = new Date().toISOString().slice(0, 10);
     const q = query(
-      collection(db, "orders", today, "online"),
+      collection(db, "orders", todayKey(), "online"),
       where("phone", "==", phone)
     );
-
-    const unsub = onSnapshot(q, snap => {
-      setHasOrdersToday(!snap.empty);
-    });
-
+    const unsub = onSnapshot(q, (snap) => setHasOrdersToday(!snap.empty));
     return () => unsub();
   }, [phone]);
 
   /* ---------------- Load catalogue ---------------- */
   useEffect(() => {
-    load();
-  }, []);
+    let alive = true;
+    getCatalogueItems()
+      .then((data) => {
+        if (!alive) return;
+        setItems(data);
+        writeCache(data);
+        setStatus("ready");
+      })
+      .catch((err) => {
+        console.error("Menu load failed:", err);
+        if (alive) setStatus((s) => (s === "ready" ? "ready" : "error"));
+      });
+    return () => {
+      alive = false;
+    };
+  }, [reloadKey]);
 
-  async function load() {
-    const data = await getCatalogueItems();
-    setItems(data);
-  }
+  /* ---------------- Warm the image cache ---------------- */
+  useEffect(() => {
+    if (!items.length) return;
+    const t = setTimeout(() => {
+      prefetchImages(items.slice(0, 40).map((i) => i.image));
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [items]);
 
-  /* ---------------- Veg / NonVeg filtering ---------------- */
+  /* ---------------- Filtering ---------------- */
   const foodFilteredItems = useMemo(() => {
-    if (foodFilter === "veg") {
-      return items.filter(i => i.veg === true);
-    }
-    if (foodFilter === "nonveg") {
-      return items.filter(i => i.veg === false);
-    }
+    if (foodFilter === "veg") return items.filter((i) => i.veg === true);
+    if (foodFilter === "nonveg") return items.filter((i) => i.veg === false);
     return items;
   }, [items, foodFilter]);
 
-  /* ---------------- Categories WITH COUNT ---------------- */
   const categories = useMemo(() => {
     const map = {};
-    foodFilteredItems.forEach(item => {
+    foodFilteredItems.forEach((item) => {
       map[item.category] = (map[item.category] || 0) + 1;
     });
-
-    return Object.entries(map).map(([name, count]) => ({
-      name,
-      count,
-    }));
+    return Object.entries(map).map(([name, count]) => ({ name, count }));
   }, [foodFilteredItems]);
 
-  /* ---------------- Keep activeCategory valid ---------------- */
   useEffect(() => {
     if (!categories.length) {
       setActiveCategory(null);
       return;
     }
-
-    if (!categories.some(c => c.name === activeCategory)) {
+    if (!categories.some((c) => c.name === activeCategory)) {
       setActiveCategory(categories[0].name);
     }
   }, [categories, activeCategory]);
 
-  /* ---------------- Items shown in grid ---------------- */
+  // Keep the active chip in view when the category changes (also from the sheet)
+  useEffect(() => {
+    document
+      .querySelector(".chip.is-active")
+      ?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+  }, [activeCategory]);
+
   const filteredItems = useMemo(() => {
     if (!activeCategory) return [];
-    return foodFilteredItems.filter(
-      item => item.category === activeCategory
-    );
+    return foodFilteredItems.filter((item) => item.category === activeCategory);
   }, [foodFilteredItems, activeCategory]);
 
-  /* ---------------- Cart count ---------------- */
-  const cartCount = useMemo(() => {
-    return Object.values(cartItems).reduce(
-      (sum, item) => sum + item.qty,
-      0
-    );
+  /* ---------------- Cart totals ---------------- */
+  const { cartCount, cartTotal } = useMemo(() => {
+    const list = Object.values(cartItems);
+    return {
+      cartCount: list.reduce((sum, i) => sum + i.qty, 0),
+      cartTotal: list.reduce((sum, i) => sum + i.qty * i.price, 0),
+    };
   }, [cartItems]);
 
+  const retry = () => {
+    setStatus("loading");
+    setReloadKey((k) => k + 1);
+  };
+
+  const pickCategory = (name) => {
+    setActiveCategory(name);
+    setCatSheet(false);
+    requestAnimationFrame(() => {
+      document
+        .getElementById("menu-top")
+        ?.scrollIntoView({ block: "start", behavior: "smooth" });
+    });
+  };
+
   return (
-    <div className="min-h-screen p-4 pb-28 bg-[#F3E4C4]">
+    <div className="screen">
       <AppHeader storeOpen={storeOpen} />
 
-      {/* HEADER ROW */}
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-sm font-bold text-[#8B4513]">Menu</h1>
+      {/* STICKY CONTROLS */}
+      <div className="menu-controls">
+        <div className="row between">
+          <h1 className="title">Menu</h1>
 
-        {/* Veg / NonVeg Toggle */}
-        <div className="flex border rounded-full overflow-hidden text-xs">
-          {["all", "veg", "nonveg"].map(type => (
-            <button
-              key={type}
-              onClick={() => setFoodFilter(type)}
-              className={`px-3 py-1 transition ${
-                foodFilter === type
-                  ? type === "veg"
-                    ? "bg-green-600 text-white ring-2 ring-green-400"
-                    : type === "nonveg"
-                    ? "bg-[#7a1f1f] text-white ring-2 ring-[#7a1f1f]"
-                    : "bg-[#8B4513] text-white ring-2 ring-[#8B4513]"
-                  : "bg-white text-[#8B4513]"
-              }`}
-            >
-              {type === "all" ? "All" : type === "veg" ? "Veg" : "Non-Veg"}
-            </button>
-          ))}
+          <div className="seg" role="group" aria-label="Food type">
+            {FILTERS.map((f) => (
+              <button
+                key={f.id}
+                data-kind={f.id}
+                aria-pressed={foodFilter === f.id}
+                onClick={() => setFoodFilter(f.id)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* CATEGORY TABS WITH FADE */}
-      <div className="relative mb-4">
-        <div className="flex gap-2 overflow-x-auto no-scrollbar px-2 category-fade">
-          {categories.map(cat => (
-            <button
-              key={cat.name}
-              onClick={() => setActiveCategory(cat.name)}
-              className={`px-4 py-1 rounded-full text-sm whitespace-nowrap border transition-all ${
-                activeCategory === cat.name
-                  ? "bg-[#8B4513] text-white border-2 border-[#8B4513] scale-105 shadow-[0_4px_10px_rgba(139,69,19,0.12)]"
-                  : "bg-white text-[#8B4513] border border-[#8B4513]/20"
-              }`}
-            >
-              {cat.name} ({cat.count})
-            </button>
-          ))}
-        </div>
-      </div>
-
-
-      {/* ITEMS GRID WITH ANIMATION */}
-      <div
-        key={activeCategory}
-        className="grid grid-cols-2 gap-3 animate-fadeIn"
-      >
-        {filteredItems.map(item => {
-          const qty = cartItems[item.id]?.qty || 0;
-
-          return (
-            <div
-              key={item.id}
-              className="bg-white rounded-lg shadow-sm p-2 flex flex-col items-center transition-transform active:scale-95"
-            >
-              <div className="relative w-full">
-                <img
-                  src={item.image || "/no-image.svg"}
-                  className="w-full h-20 object-cover rounded-lg"
-                />
-
-                <span
-                  className={`absolute top-1 right-1 w-3 h-3 rounded-full border border-white ${
-                    item.veg ? "bg-green-600" : "bg-[#7a1f1f]"
-                  }`}
-                />
+        {categories.length > 0 && (
+          <div className="cats-row">
+            <div className="chips-wrap">
+              <div className="chips" role="group" aria-label="Categories">
+                {categories.map((cat) => (
+                  <button
+                    key={cat.name}
+                    aria-pressed={activeCategory === cat.name}
+                    className={`chip ${activeCategory === cat.name ? "is-active" : ""}`}
+                    onClick={() => setActiveCategory(cat.name)}
+                  >
+                    {titleCase(cat.name)}
+                    <span className="count">{cat.count}</span>
+                  </button>
+                ))}
               </div>
-
-              <p className="mt-2 text-sm text-center font-semibold text-[#8B4513]">
-                {item.name} (₹{item.price})
-              </p>
-
-              {qty === 0 ? (
-                <button
-                  onClick={() => addItem(item)}
-                  className="mt-2 text-xs bg-[#8B4513] text-white px-3 py-1 rounded-full active:scale-95"
-                >
-                  Add
-                </button>
-              ) : (
-                <div className="mt-2 flex items-center gap-2 bg-[#F3E4C4] rounded px-2 py-1">
-                  <button onClick={() => decrement(item.id)}>-</button>
-                  <span className="text-xs font-bold" style={{color:"#8B4513"}}>{qty}</span>
-                  <button onClick={() => increment(item.id)}>+</button>
-                </div>
-              )}
             </div>
-          );
-        })}
+
+            <button
+              className="cat-btn"
+              onClick={() => setCatSheet(true)}
+              aria-label="Browse all categories"
+              title="All categories"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <path d="M4 6h16M4 12h16M4 18h10" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* BOTTOM BUTTONS */}
-      {(cartCount > 0 || hasOrdersToday) && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex gap-3">
-          {cartCount > 0 && (
-            <button
-              onClick={() => navigate("/cart")}
-              className="relative bg-[#8B4513] text-white font-semibold w-36 h-16 rounded-full shadow-lg"
-            >
-              Cart
-              <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                {cartCount}
+      {/* ITEMS */}
+      <main id="menu-top" className="screen-body">
+        {status === "loading" && (
+          <div className="dish-grid" aria-busy="true">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="dish is-skeleton">
+                <div className="img-box" style={{ aspectRatio: "4 / 3" }} />
+                <div className="dish-body">
+                  <div className="line" />
+                  <div className="line short" />
+                </div>
               </div>
-            </button>
-          )}
+            ))}
+          </div>
+        )}
 
-          {hasOrdersToday && (
-            <button
-              onClick={() => navigate("/orders")}
-              className="bg-green-600 text-white font-semibold h-16 px-5 rounded-full shadow-lg"
-            >
-              My Today’s Orders
+        {status === "error" && (
+          <div className="empty">
+            <p>Couldn’t load the menu. Check your connection and try again.</p>
+            <button className="btn btn-primary" style={{ maxWidth: 200 }} onClick={retry}>
+              Try again
             </button>
-          )}
+          </div>
+        )}
+
+        {status === "ready" && filteredItems.length === 0 && (
+          <div className="empty">
+            <p>No items in this filter yet.</p>
+          </div>
+        )}
+
+        {filteredItems.length > 0 && (
+          <div key={activeCategory} className="dish-grid fade-in">
+            {filteredItems.map((item, idx) => {
+              const qty = cartItems[item.id]?.qty || 0;
+
+              return (
+                <article key={item.id} className="dish">
+                  <div className="dish-media">
+                    <SmartImage
+                      src={item.image}
+                      alt={item.name}
+                      ratio="4 / 3"
+                      priority={idx < 4}
+                    />
+                    <span className="dish-badge" title={item.veg ? "Veg" : "Non-veg"}>
+                      <i className={`diet ${item.veg ? "" : "nonveg"}`} />
+                    </span>
+                  </div>
+
+                  <div className="dish-body">
+                    <p className="dish-name">{item.name}</p>
+
+                    <div className="dish-foot">
+                      <p className="price">₹{item.price}</p>
+
+                      {qty === 0 ? (
+                        <button className="btn-add" onClick={() => addItem(item)}>
+                          Add
+                        </button>
+                      ) : (
+                        <div className="stepper is-block">
+                          <button
+                            onClick={() => decrement(item.id)}
+                            aria-label={`Remove one ${item.name}`}
+                          >
+                            −
+                          </button>
+                          <span>{qty}</span>
+                          <button
+                            onClick={() => increment(item.id)}
+                            aria-label={`Add one ${item.name}`}
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </main>
+
+      <CartBubble
+        count={cartCount}
+        total={cartTotal}
+        showOrders={hasOrdersToday}
+        onOpenCart={() => navigate("/cart")}
+        onOpenOrders={() => navigate("/orders")}
+      />
+
+      {/* CATEGORY JUMP SHEET */}
+      {catSheet && (
+        <div className="scrim" onClick={() => setCatSheet(false)} role="presentation">
+          <div
+            className="sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cat-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="cat-title" className="heading">
+              Jump to category
+            </h2>
+            <ul className="cat-list">
+              {categories.map((cat) => (
+                <li key={cat.name}>
+                  <button
+                    className={`cat-row ${activeCategory === cat.name ? "is-active" : ""}`}
+                    onClick={() => pickCategory(cat.name)}
+                  >
+                    <span>{titleCase(cat.name)}</span>
+                    <span className="muted small">{cat.count}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       )}
     </div>

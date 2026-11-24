@@ -1,0 +1,116 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Nunito+Sans:wght@400;600;700&display=swap");
+
+/* Scoped to .hm so it can't affect the rest of the app. Fixed brand theme. */
+.hm {
+  --cocoa: #1c0e07;
+  --choc: #2e170c;
+  --choc-2: #432212;
+  --gold: #f5b83d;
+  --gold-deep: #d9941a;
+  --cream: #fff1d6;
+  --muted: #cdb48f;
+  --line: rgba(245, 184, 61, 0.28);
+
+  min-height: 100%;
+  background: var(--cocoa);
+  color: var(--cream);
+  font-family: "Nunito Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  padding-bottom: 88px; /* room for sticky bar */
+  -webkit-tap-highlight-color: transparent;
+}
+.hm *, .hm *::before, .hm *::after { box-sizing: border-box; }
+.hm img { display: block; max-width: 100%; height: auto; }
+.hm h1, .hm h2 { font-family: "Fraunces", Georgia, serif; margin: 0; line-height: 1.15; }
+.hm p { margin: 0 0 12px; max-width: 60ch; }
+.hm a { color: inherit; }
+.hm :focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+/* Hero */
+.hm-hero {
+  text-align: center;
+  padding: 28px 20px 36px;
+  background:
+    radial-gradient(120% 60% at 50% 0%, var(--choc-2) 0%, var(--cocoa) 70%);
+}
+.hm-logo {
+  width: min(62vw, 260px);
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--line), 0 18px 50px rgba(245, 184, 61, 0.18);
+}
+.hm-tagline { font-size: clamp(30px, 9vw, 42px); font-weight: 800; color: var(--gold); margin-top: 14px; }
+.hm-sub { margin: 10px auto 22px; color: var(--cream); }
+.hm-sub b { color: var(--gold); font-size: 1.15em; }
+.hm-link { display: inline-block; margin-top: 14px; color: var(--muted); text-underline-offset: 4px; padding: 6px; }
+
+/* Buttons */
+.hm-cta {
+  appearance: none; border: 0; cursor: pointer;
+  background: linear-gradient(180deg, var(--gold) 0%, var(--gold-deep) 100%);
+  color: #2a1204; font: 800 18px "Nunito Sans", system-ui, sans-serif;
+  padding: 16px 40px; border-radius: 14px; min-height: 52px;
+  box-shadow: 0 8px 24px rgba(217, 148, 26, 0.35);
+}
+.hm-cta:active { transform: translateY(1px); }
+.hm-cta--wide { width: 100%; }
+.hm-btn {
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  min-height: 48px; padding: 12px 20px; border-radius: 12px; text-decoration: none;
+  font-weight: 700; background: var(--choc-2); border: 1px solid var(--gold); color: var(--cream);
+}
+.hm-btn--ghost { background: transparent; }
+
+/* Sections */
+.hm-sec { padding: 28px 20px; border-top: 1px solid var(--line); }
+.hm-sec h2 { font-size: 26px; color: var(--gold); margin-bottom: 14px; }
+
+.hm-menu { list-style: none; margin: 0 0 20px; padding: 0; }
+.hm-menu li {
+  display: flex; flex-direction: column; gap: 0;
+  padding: 12px 0; border-bottom: 1px dashed var(--line);
+}
+.hm-menu-name { font-weight: 700; font-size: 18px; }
+.hm-menu-line { color: var(--muted); font-size: 14px; }
+
+.hm-gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.hm-gallery img { border-radius: 14px; aspect-ratio: 1; object-fit: cover; width: 100%; }
+.hm-gallery figcaption { font-size: 14px; margin-top: 6px; }
+.hm-gallery figure { margin: 0; }
+
+.hm-poster, .hm-map { border-radius: 14px; border: 1px solid var(--line); margin: 6px 0 18px; width: 100%; }
+
+.hm-row { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; }
+.hm-row--stack { grid-template-columns: 1fr; margin-bottom: 18px; }
+.hm-qr { margin: 0; width: 120px; text-align: center; }
+.hm-qr img { border-radius: 10px; background: #fff; }
+.hm-qr figcaption { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+.hm-small { font-size: 13px; color: var(--muted); }
+.hm-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.hm-chip {
+  padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line);
+  text-decoration: none; font-weight: 600; font-size: 14px; background: var(--choc);
+}
+.hm-chip--off { color: var(--muted); }
+
+/* Privacy */
+.hm-details { background: var(--choc); border: 1px solid var(--line); border-radius: 12px; }
+.hm-details summary { cursor: pointer; padding: 14px 16px; font-weight: 700; min-height: 48px; }
+.hm-policy { padding: 0 16px 8px; font-size: 14px; }
+
+.hm-foot { text-align: center; padding: 28px 20px 12px; border-top: 1px solid var(--line); color: var(--muted); }
+.hm-foot p { margin-left: auto; margin-right: auto; }
+
+/* Sticky order bar */
+.hm-bar {
+  position: sticky; bottom: 0; z-index: 5;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, rgba(28,14,7,0) 0%, var(--cocoa) 35%);
+  margin-top: -76px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hm-cta { transition: transform 0.1s ease; }
+}

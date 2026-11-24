@@ -1,33 +1,48 @@
+import ThemeToggle from "./ThemeToggle";
+
 export default function AppHeader({
   storeOpen = false,
   showStatus = true,
+  compact = false,
 }) {
   return (
-    <div className="flex items-center gap-3 mb-4">
-      <img
-        src="/vrk-logo.svg"
-        alt="VRK Waffles"
-        className="w-20 h-20 rounded-full"
-      />
+    <header className={`hero waffle ${compact ? "is-compact" : ""}`}>
+      <div className="hero-row">
+        <img
+          src="/waffle_dimension_logo.jpg"
+          alt="Waffle Dimension Logo"
+          width="64"
+          height="64"
+          loading="eager"
+          decoding="async"
+          className="hero-logo"
+        />
 
-      <div className="flex-1 leading-tight">
-        <h2 className="text-sm font-semibold chocolate-text">
-          Siddartha Nagar, Dammiguda
-        </h2>
+        <div className="hero-text">
+          <p className="hero-name">Waffle Dimension</p>
 
-        <h3 className="text-xs chocolate-text">
-          Ph. <span className="font-bold chocolate-text">7901333390</span>
-        </h3>
+          {!compact && (
+            <>
+              <p className="hero-meta">Creative Nagar, A S Rao Nagar</p>
+              <p className="hero-meta">
+                Ph.{" "}
+                <a className="hero-phone" href="tel:+917901333390">
+                  9493706256
+                </a>
+              </p>
+            </>
+          )}
+        </div>
 
-        {showStatus && (
-          <h3 className="text-xs mt-1 chocolate-text">
-            Waffle Store Status :
-            <span className={`ml-1 font-bold chocolate-text`}>
-              {storeOpen ? "Online" : "Offline"}
+        <div className="hero-actions">
+          <ThemeToggle />
+          {showStatus && (
+            <span className={`status ${storeOpen ? "is-open" : ""}`}>
+              {storeOpen ? "Open" : "Closed"}
             </span>
-          </h3>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </header>
   );
 }
