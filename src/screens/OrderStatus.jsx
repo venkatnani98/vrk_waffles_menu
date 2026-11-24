@@ -12,6 +12,7 @@ import { localDate } from "../services/date";
 import { useUserStore } from "../store/userStore";
 import { OrderBatch } from "../components/OrderBatch";
 import AppHeader from "../components/AppHeader";
+import NotifyPrompt from "../components/NotifyPrompt";
 
 export default function OrderStatus() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function OrderStatus() {
 
   // No saved customer -> start at onboarding
   useEffect(() => {
-    if (!phone) navigate("/", { replace: true });
+    if (!phone) navigate("/start", { replace: true });
   }, [phone, navigate]);
 
   useEffect(() => {
@@ -124,6 +125,8 @@ export default function OrderStatus() {
       </div>
 
       <main className="screen-body" style={{ display: "grid", gap: 12, alignContent: "start" }}>
+        <NotifyPrompt phone={phone} />
+
         {loading && (
           <p className="small muted" style={{ textAlign: "center", padding: "40px 0" }}>
             Loading your orders…

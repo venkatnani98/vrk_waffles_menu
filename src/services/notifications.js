@@ -4,7 +4,7 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "./firebase";
 
 // Firebase console -> Project settings -> Cloud Messaging -> Web Push certificates
-const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+const VAPID_KEY = import.meta.env.VAPID_KEY;
 
 const isIOS = () =>
   /iphone|ipad|ipod/i.test(navigator.userAgent) ||
@@ -72,4 +72,23 @@ export async function refreshTokenIfGranted(phone) {
   } catch (err) {
     console.warn("Could not refresh notification token:", err);
   }
+}
+
+import { getMessaging, getToken, isSupported, onMessage } from "firebase/messaging";
+
+let foregroundBound = false;
+function listenForeground() {
+  if (foregroundBound) return;
+  foregroundBound = true;
+  onMessage(getMessaging(getApp()), async (payload) => {
+    const reg = await navigator.serviceWorker.getRegistration("/firebase-messaging-sw.js");
+    if (!reg) return;
+    const { title, body } = payload.notification || {};
+    reg.showNotification(title || "Order update", {
+      body,
+      icon: "/icons/icon-192.png",
+      tag: payload.data?.orderId,
+      data: payload.data,
+    });
+  });
 }

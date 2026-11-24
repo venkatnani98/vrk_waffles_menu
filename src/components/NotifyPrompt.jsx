@@ -3,7 +3,7 @@ import {
   getNotificationState,
   enableOrderNotifications,
   refreshTokenIfGranted,
-} from "../services/notifications";
+} from "../services/firebase";
 
 const DISMISS_KEY = "vrk_notify_dismissed_at";
 const DISMISS_DAYS = 3;
